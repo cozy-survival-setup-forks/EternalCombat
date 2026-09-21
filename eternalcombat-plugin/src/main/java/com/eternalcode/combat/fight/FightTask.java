@@ -40,7 +40,7 @@ public class FightTask implements Runnable {
 
             if (fightTag.isExpired()) {
                 this.fightManager.untag(playerUniqueId, CauseOfUnTag.TIME_EXPIRED);
-                return;
+                continue;
             }
 
             if (this.config.combat.keepCombatActiveInVoid

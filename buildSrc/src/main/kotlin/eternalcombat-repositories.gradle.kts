@@ -15,5 +15,6 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://repo.codemc.io/repository/maven-releases/")
     maven("https://jitpack.io/")
+    maven("https://repo.william278.net/releases")
     maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }

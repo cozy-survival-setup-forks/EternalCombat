@@ -22,4 +22,11 @@ public interface Region {
             && z >= min.getZ() && z < max.getZ();
     }
 
+    /**
+     * If true, a player tagged inside this region may stay and move around in it. Once they leave they cannot come
+     * back in until the fight ends. If false, they are pushed out.
+     */
+    default boolean keepsTaggedPlayersInside() {
+        return false;
+    }
 }

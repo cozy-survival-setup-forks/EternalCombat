@@ -19,6 +19,13 @@ public class RegionSettings extends OkaeriConfig {
     public boolean preventPvpInRegions = true;
 
     @Comment({
+        "# Treat HuskClaims claims as regions players in combat cannot enter.",
+        "# A player who was tagged inside a claim may stay in it, but once they leave they cannot come back in until",
+        "# the fight is over. The combat border is drawn around claims too."
+    })
+    public boolean protectHuskClaims = true;
+
+    @Comment({
         "# Define the radius of restricted regions if WorldGuard is not used.",
         "# This setting is based on the default spawn region."
     })

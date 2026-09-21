@@ -48,7 +48,8 @@ class BorderTriggerIndex {
                 triggers.add(new BorderTrigger(
                     min.getBlockX(), min.getBlockY(), min.getBlockZ(),
                     max.getBlockX() + 1, max.getBlockY() + 1, max.getBlockZ() + 1,
-                    distanceRounded
+                    distanceRounded,
+                    region
                 ));
             }
 

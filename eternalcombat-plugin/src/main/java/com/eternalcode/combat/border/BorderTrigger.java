@@ -1,13 +1,16 @@
 package com.eternalcode.combat.border;
 
-record BorderTrigger(BorderPoint min, BorderPoint max, BorderPoint triggerMin, BorderPoint triggerMax) {
+import com.eternalcode.combat.region.Region;
 
-    BorderTrigger(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int distance) {
+record BorderTrigger(BorderPoint min, BorderPoint max, BorderPoint triggerMin, BorderPoint triggerMax, Region region) {
+
+    BorderTrigger(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int distance, Region region) {
         this(
             new BorderPoint(minX, minY, minZ),
             new BorderPoint(maxX, maxY, maxZ),
             new BorderPoint(minX - distance, minY - distance, minZ - distance),
-            new BorderPoint(maxX + distance, maxY + distance, maxZ + distance)
+            new BorderPoint(maxX + distance, maxY + distance, maxZ + distance),
+            region
         );
     }
 

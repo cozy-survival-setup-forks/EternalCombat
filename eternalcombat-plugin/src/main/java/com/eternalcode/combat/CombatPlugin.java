@@ -26,8 +26,6 @@ import com.eternalcode.combat.fight.blocker.InventoryContainersBlocker;
 import com.eternalcode.combat.fight.controller.FightMessageController;
 import com.eternalcode.combat.fight.controller.FightTagController;
 import com.eternalcode.combat.fight.controller.FightUnTagController;
-import com.eternalcode.combat.fight.death.DeathFlareController;
-import com.eternalcode.combat.fight.death.DeathLightningController;
 import com.eternalcode.combat.fight.drop.DropController;
 import com.eternalcode.combat.fight.drop.DropKeepInventoryService;
 import com.eternalcode.combat.fight.drop.DropKeepInventoryServiceImpl;
@@ -36,10 +34,6 @@ import com.eternalcode.combat.fight.drop.DropServiceImpl;
 import com.eternalcode.combat.fight.drop.impl.PercentDropModifier;
 import com.eternalcode.combat.fight.drop.impl.PlayersHealthDropModifier;
 import com.eternalcode.combat.fight.blocker.PlaceBlockBlocker;
-import com.eternalcode.combat.fight.blocker.SignEditingBlocker;
-import com.eternalcode.combat.fight.effect.FightEffectController;
-import com.eternalcode.combat.fight.effect.FightEffectService;
-import com.eternalcode.combat.fight.effect.FightEffectServiceImpl;
 import com.eternalcode.combat.fight.firework.FireworkController;
 import com.eternalcode.combat.fight.knockback.KnockbackMountController;
 import com.eternalcode.combat.fight.knockback.KnockbackRegionController;
@@ -49,9 +43,6 @@ import com.eternalcode.combat.fight.logout.LogoutService;
 import com.eternalcode.combat.fight.pearl.PearlController;
 import com.eternalcode.combat.fight.pearl.PearlService;
 import com.eternalcode.combat.fight.pearl.PearlServiceImpl;
-import com.eternalcode.combat.fight.spear.SpearLungeController;
-import com.eternalcode.combat.fight.spear.SpearService;
-import com.eternalcode.combat.fight.spear.SpearServiceImpl;
 import com.eternalcode.combat.fight.tagout.FightTagOutCommand;
 import com.eternalcode.combat.fight.tagout.FightTagOutController;
 import com.eternalcode.combat.fight.tagout.FightTagOutService;
@@ -63,8 +54,7 @@ import com.eternalcode.combat.handler.InvalidUsageHandlerImpl;
 import com.eternalcode.combat.handler.MissingPermissionHandlerImpl;
 import com.eternalcode.combat.notification.NoticeService;
 import com.eternalcode.combat.region.RegionProvider;
-import com.eternalcode.combat.updater.UpdaterNotificationController;
-import com.eternalcode.combat.updater.UpdaterService;
+import com.eternalcode.combat.region.RegionStayService;
 import com.eternalcode.commons.adventure.AdventureLegacyColorPostProcessor;
 import com.eternalcode.commons.adventure.AdventureLegacyColorPreProcessor;
 import com.eternalcode.commons.bukkit.scheduler.MinecraftScheduler;
@@ -76,7 +66,6 @@ import dev.rollczi.litecommands.bukkit.LiteBukkitMessages;
 import dev.rollczi.litecommands.folia.FoliaExtension;
 import java.time.Duration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -90,13 +79,11 @@ import java.util.stream.Stream;
 public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
 
     private static final String FALLBACK_PREFIX = "eternalcombat";
-    private static final int BSTATS_METRICS_ID = 17803;
 
     private FightManager fightManager;
     private PearlService pearlService;
     private TridentService tridentService;
     private FightTagOutService fightTagOutService;
-    private FightEffectService fightEffectService;
 
     private DropService dropService;
     private DropKeepInventoryService dropKeepInventoryService;
@@ -125,14 +112,11 @@ public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
         this.pearlService = new PearlServiceImpl(this.fightManager, pluginConfig, scheduler);
         this.tridentService = new TridentServiceImpl(pluginConfig);
         this.fightTagOutService = new FightTagOutServiceImpl();
-        this.fightEffectService = new FightEffectServiceImpl();
 
         LogoutService logoutService = new LogoutService();
 
         this.dropService = new DropServiceImpl();
         this.dropKeepInventoryService = new DropKeepInventoryServiceImpl();
-
-        UpdaterService updaterService = new UpdaterService(this.getDescription());
 
         MiniMessage miniMessage = MiniMessage.builder()
             .postProcessor(new AdventureLegacyColorPostProcessor())
@@ -151,10 +135,9 @@ public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
         bridgeService.init(server);
 
         this.regionProvider = bridgeService.getRegionProvider();
-        BorderService borderService = new BorderServiceImpl(scheduler, server, regionProvider, eventManager, () -> pluginConfig.border);
+        RegionStayService stayService = new RegionStayService();
+        BorderService borderService = new BorderServiceImpl(scheduler, server, regionProvider, eventManager, () -> pluginConfig.border, stayService);
         KnockbackService knockbackService = new KnockbackService(pluginConfig, scheduler, regionProvider);
-
-        SpearService spearService = new SpearServiceImpl(pluginConfig.spear);
 
         this.liteCommands = LiteBukkitFactory.builder(FALLBACK_PREFIX, this, server)
             .message(LiteBukkitMessages.PLAYER_NOT_FOUND, pluginConfig.messagesSettings.playerNotFound)
@@ -181,8 +164,6 @@ public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
         FightTask fightTask = new FightTask(server, pluginConfig, this.fightManager, noticeService);
         scheduler.timer(fightTask, Duration.ofSeconds(1), Duration.ofSeconds(1));
 
-        new Metrics(this, BSTATS_METRICS_ID);
-
         Stream.of(
             new PercentDropModifier(pluginConfig.drop),
             new PlayersHealthDropModifier(pluginConfig.drop, logoutService)
@@ -197,11 +178,7 @@ public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
             new PlaceBlockBlocker(this.fightManager, noticeService, pluginConfig),
             new PearlController(pluginConfig, this.pearlService, noticeService, fightManager),
             new TridentController(pluginConfig, noticeService, this.fightManager, this.tridentService, server),
-            new DeathFlareController(pluginConfig, server, scheduler, this),
-            new DeathLightningController(pluginConfig, server),
-            new UpdaterNotificationController(updaterService, pluginConfig, miniMessage),
-            new KnockbackRegionController(noticeService, this.regionProvider, this.fightManager, knockbackService, server),
-            new FightEffectController(pluginConfig.effect, this.fightEffectService, this.fightManager, server),
+            new KnockbackRegionController(noticeService, this.regionProvider, this.fightManager, knockbackService, server, stayService),
             new FightTagOutController(this.fightTagOutService),
             new FightMessageController(this.fightManager, noticeService, pluginConfig, server),
             new BorderTriggerController(borderService, () -> pluginConfig.border, fightManager, server, scheduler),
@@ -211,17 +188,13 @@ public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
             new RespawnAnchorListener(this, this.fightManager, pluginConfig),
             new FireworkController(this.fightManager, pluginConfig, noticeService),
             new InventoryContainersBlocker(this.fightManager, pluginConfig, noticeService),
-            new SignEditingBlocker(this.fightManager, pluginConfig),
             new CommandsBlocker(this.fightManager, noticeService, pluginConfig),
             new ElytraBlocker(this.fightManager, pluginConfig),
             new ElytraEquipBlocker(this.fightManager, noticeService, pluginConfig, server),
-            new FlyingBlocker(this.fightManager, pluginConfig, server),
-            new PlaceBlockBlocker(this.fightManager, noticeService, pluginConfig)
+            new FlyingBlocker(this.fightManager, pluginConfig, server)
         );
 
         new KnockbackMountController(noticeService, this.regionProvider, this.fightManager).register(this);
-
-        new SpearLungeController(this, fightManager, spearService, pluginConfig.spear, noticeService);
 
         eventManager.subscribe(
             PlayerDeathEvent.class,
@@ -276,11 +249,6 @@ public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
     @Override
     public FightTagOutService getFightTagOutService() {
         return this.fightTagOutService;
-    }
-
-    @Override
-    public FightEffectService getFightEffectService() {
-        return this.fightEffectService;
     }
 
     @Override

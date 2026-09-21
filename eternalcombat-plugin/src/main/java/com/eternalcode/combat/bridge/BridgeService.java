@@ -1,12 +1,12 @@
 package com.eternalcode.combat.bridge;
 
-import com.eternalcode.combat.region.lands.LandsRegionProvider;
 import com.eternalcode.combat.bridge.placeholder.FightTagPlaceholder;
 import com.eternalcode.combat.config.implementation.PluginConfig;
 import com.eternalcode.combat.fight.FightManager;
 import com.eternalcode.combat.region.CompositeRegionProvider;
 import com.eternalcode.combat.region.bukkit.DefaultRegionProvider;
 import com.eternalcode.combat.region.RegionProvider;
+import com.eternalcode.combat.region.huskclaims.HuskClaimsRegionProvider;
 import com.eternalcode.combat.region.worldguard.WorldGuardRegionProvider;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,11 +43,14 @@ public class BridgeService {
     public void init(Server server) {
         List<RegionProvider> providers = new ArrayList<>();
 
-        this.initialize(
-            "Lands",
-            () -> providers.add(new LandsRegionProvider(plugin)),
-            () -> this.logger.warning("Lands not found; skipping LandsRegionProvider.")
-        );
+
+        if (this.config.regions.protectHuskClaims) {
+            this.initialize(
+                "HuskClaims",
+                () -> providers.add(new HuskClaimsRegionProvider()),
+                () -> this.logger.warning("HuskClaims not found; skipping HuskClaimsRegionProvider.")
+            );
+        }
 
         this.initialize(
             "WorldGuard",

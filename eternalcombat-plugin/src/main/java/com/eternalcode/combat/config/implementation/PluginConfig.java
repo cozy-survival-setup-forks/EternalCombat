@@ -1,12 +1,9 @@
 package com.eternalcode.combat.config.implementation;
 
 import com.eternalcode.combat.border.BorderSettings;
-import com.eternalcode.combat.fight.death.DeathSettings;
 import com.eternalcode.combat.fight.drop.DropSettings;
-import com.eternalcode.combat.fight.effect.FightEffectSettings;
 import com.eternalcode.combat.fight.knockback.KnockbackSettings;
 import com.eternalcode.combat.fight.pearl.PearlSettings;
-import com.eternalcode.combat.fight.spear.SpearSettings;
 import com.eternalcode.combat.fight.trident.TridentSettings;
 import eu.okaeri.configs.OkaeriConfig;
 import eu.okaeri.configs.annotation.Comment;
@@ -44,26 +41,6 @@ public class PluginConfig extends OkaeriConfig {
         "# Configure cooldowns, restrictions, and other behaviors for Trident during combat."
     })
     public TridentSettings trident = new TridentSettings();
-
-    @Comment({
-        " ",
-        "# Settings related to Spears with lunge",
-        "# Set cooldown for spear lunging"
-    })
-    public SpearSettings spear = new SpearSettings();
-
-    @Comment({
-        " ",
-        "# Custom effects applied during combat.",
-        "# Configure effects like blindness, slowness, or other debuffs that are applied to players in combat."
-    })
-    public FightEffectSettings effect = new FightEffectSettings();
-
-    @Comment({
-        " ",
-        "# This section contains effects displayed on death of the player"
-    })
-    public DeathSettings death = new DeathSettings();
 
     @Comment({
         " ",
@@ -137,13 +114,6 @@ public class PluginConfig extends OkaeriConfig {
 
     @Comment({
         " ",
-        "# Settings related to sign editing during combat.",
-        "# Created for sign traps where opening the sign editor can block ender pearl throws."
-    })
-    public SignEditingSettings signEditing = new SignEditingSettings();
-
-    @Comment({
-        " ",
         "# Settings related to placeholders used in the plugin.",
         "# Configure default values returned by placeholders"
     })
@@ -157,12 +127,6 @@ public class PluginConfig extends OkaeriConfig {
     public MessagesSettings messagesSettings = new MessagesSettings();
 
     public static class Settings extends OkaeriConfig {
-        @Comment({
-            "# Notify players about new plugin updates when they join the server.",
-            "# Set to 'true' to enable update notifications, or 'false' to disable them."
-        })
-        public boolean notifyAboutUpdates = true;
-
         @Comment({
             "# The duration (in seconds) that a player remains in combat after being attacked.",
             "# After this time expires, the player will no longer be considered in combat."

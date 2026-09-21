@@ -7,6 +7,7 @@ plugins {
     `eternalcombat-repositories`
     `eternalcombat-publish-hangar`
     `eternalcombat-publish-modrinth`
+    `eternalcombat-java-unit-test`
     `eternalcombat-runserver`
 
     id("de.eldoria.plugin-yml.paper") version "0.9.0"
@@ -41,9 +42,6 @@ dependencies {
     // XSeries
     implementation("com.github.cryptomorin:XSeries:${Versions.XSERIES}")
 
-    // bstats
-    implementation("org.bstats:bstats-bukkit:${Versions.B_STATS_BUKKIT}")
-
     // caffeine
     implementation("com.github.ben-manes.caffeine:caffeine:${Versions.CAFFEINE}")
 
@@ -51,7 +49,6 @@ dependencies {
     implementation("com.eternalcode:eternalcode-commons-bukkit:${Versions.ETERNALCODE_COMMONS}")
     implementation("com.eternalcode:eternalcode-commons-shared:${Versions.ETERNALCODE_COMMONS}")
     implementation("com.eternalcode:eternalcode-commons-folia:${Versions.ETERNALCODE_COMMONS}")
-    implementation("com.eternalcode:eternalcode-commons-updater:${Versions.ETERNALCODE_COMMONS}")
 
     // worldguard
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:${Versions.WORLD_GUARD_BUKKIT}")
@@ -59,8 +56,8 @@ dependencies {
     // PlaceholderAPI
     compileOnly("me.clip:placeholderapi:${Versions.PLACEHOLDER_API}")
 
-    // Lands
-    compileOnly("com.github.angeschossen:LandsAPI:${Versions.LANDS_API}")
+    // HuskClaims
+    compileOnly("net.william278.huskclaims:huskclaims-bukkit:${Versions.HUSKCLAIMS}")
 
     // Multification
     implementation("com.eternalcode:multification-paper:${Versions.MULTIFICATION}")
@@ -86,7 +83,7 @@ paper {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
         }
 
-        register("Lands") {
+        register("HuskClaims") {
             required = false
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
         }
@@ -133,7 +130,6 @@ tasks.shadowJar {
     val prefix = "com.eternalcode.combat.libs"
     listOf(
         "eu.okaeri",
-        "org.bstats",
         "org.yaml",
         "dev.rollczi.litecommands",
         "com.eternalcode.gitcheck",

@@ -2,9 +2,11 @@ package com.eternalcode.combat.fight.knockback;
 
 import com.eternalcode.combat.fight.FightManager;
 import com.eternalcode.combat.fight.event.FightTagEvent;
+import com.eternalcode.combat.fight.event.FightUntagEvent;
 import com.eternalcode.combat.notification.NoticeService;
 import com.eternalcode.combat.region.Region;
 import com.eternalcode.combat.region.RegionProvider;
+import com.eternalcode.combat.region.RegionStayService;
 import java.time.Duration;
 import java.util.Optional;
 import org.bukkit.Location;
@@ -15,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 
@@ -25,13 +28,15 @@ public class KnockbackRegionController implements Listener {
     private final FightManager fightManager;
     private final KnockbackService knockbackService;
     private final Server server;
+    private final RegionStayService stayService;
 
-    public KnockbackRegionController(NoticeService noticeService, RegionProvider regionProvider, FightManager fightManager, KnockbackService knockbackService, Server server) {
+    public KnockbackRegionController(NoticeService noticeService, RegionProvider regionProvider, FightManager fightManager, KnockbackService knockbackService, Server server, RegionStayService stayService) {
         this.noticeService = noticeService;
         this.regionProvider = regionProvider;
         this.fightManager = fightManager;
         this.knockbackService = knockbackService;
         this.server = server;
+        this.stayService = stayService;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -53,11 +58,16 @@ public class KnockbackRegionController implements Listener {
 
         if (xTo != xFrom || yTo != yFrom || zTo != zFrom) {
             Optional<Region> regionOptional = this.regionProvider.getRegion(locationTo);
+            this.stayService.leave(player.getUniqueId(), regionOptional);
             if (regionOptional.isEmpty()) {
                 return;
             }
 
             Region region = regionOptional.get();
+            if (this.stayService.allows(player.getUniqueId(), region)) {
+                return;
+            }
+
             if (region.contains(locationFrom)) {
                 this.knockbackService.knockback(region, player);
                 this.knockbackService.forceKnockbackLater(player, region);
@@ -112,11 +122,16 @@ public class KnockbackRegionController implements Listener {
             }
 
             Optional<Region> regionOptional = this.regionProvider.getRegion(locationTo);
+            this.stayService.leave(player.getUniqueId(), regionOptional);
             if (regionOptional.isEmpty()) {
                 return;
             }
 
             Region region = regionOptional.get();
+            if (this.stayService.allows(player.getUniqueId(), region)) {
+                continue;
+            }
+
             if (region.contains(locationFrom)) {
                 this.knockbackService.knockback(region, player);
                 this.knockbackService.forceKnockbackLater(player, region);
@@ -144,6 +159,11 @@ public class KnockbackRegionController implements Listener {
         }
 
         Region region = regionOptional.get();
+        if (region.keepsTaggedPlayersInside()) {
+            this.stayService.allow(player.getUniqueId(), region);
+            return;
+        }
+
         this.knockbackService.knockback(region, player);
         this.knockbackService.forceKnockbackLater(player, region);
 
@@ -153,4 +173,13 @@ public class KnockbackRegionController implements Listener {
             .send();
     }
 
+    @EventHandler
+    void onUntag(FightUntagEvent event) {
+        this.stayService.forget(event.getPlayer());
+    }
+
+    @EventHandler
+    void onQuit(PlayerQuitEvent event) {
+        this.stayService.forget(event.getPlayer().getUniqueId());
+    }
 }

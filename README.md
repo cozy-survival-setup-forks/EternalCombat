@@ -20,6 +20,14 @@
 
 </div>
 
+> **About this fork.** A trimmed version of EternalCombat that keeps the combat tag, the combat log punishment, the
+> blockers and the wall around protected regions, and adds HuskClaims claims as protected regions. A player in combat
+> cannot enter a claim. A player who was tagged inside a claim may stay in it, but once they step out they cannot go
+> back in until the fight ends (`regions.protectHuskClaims` in `config.yml`). Removed: the spear lunge, death flare
+> and lightning, combat effects, sign editing blocker, update checker, bStats and the Lands bridge. Fixed: the combat
+> timer stopped early for everyone else in the same second when one tag expired, and one blocker was registered twice.
+> PacketEvents is still required for the wall. Licensed under Apache 2.0 like the original.
+
 ### Information
 
 ## EternalCombat requires PacketEvents plugin to work.
