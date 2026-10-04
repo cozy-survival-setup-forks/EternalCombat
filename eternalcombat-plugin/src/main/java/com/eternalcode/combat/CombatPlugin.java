@@ -132,7 +132,7 @@ public final class CombatPlugin extends JavaPlugin implements EternalCombatApi {
             this,
             this.fightManager
         );
-        bridgeService.init(server);
+        bridgeService.init(server, scheduler);
 
         this.regionProvider = bridgeService.getRegionProvider();
         RegionStayService stayService = new RegionStayService();

@@ -4,6 +4,7 @@ import com.eternalcode.combat.config.implementation.PlaceholderSettings;
 import com.eternalcode.combat.config.implementation.PluginConfig;
 import com.eternalcode.combat.fight.FightManager;
 import com.eternalcode.combat.fight.FightTag;
+import com.eternalcode.combat.region.PvpStatusService;
 import com.eternalcode.combat.util.DurationUtil;
 import com.eternalcode.commons.time.DurationParser;
 import java.util.Optional;
@@ -20,12 +21,20 @@ public class FightTagPlaceholder extends PlaceholderExpansion {
 
     private final PlaceholderSettings placeholderSettings;
     private final FightManager fightManager;
+    private final PvpStatusService pvpStatusService;
     private final Server server;
     private final Plugin plugin;
 
-    public FightTagPlaceholder(PluginConfig pluginConfig, FightManager fightManager, Server server, Plugin plugin) {
+    public FightTagPlaceholder(
+        PluginConfig pluginConfig,
+        FightManager fightManager,
+        PvpStatusService pvpStatusService,
+        Server server,
+        Plugin plugin
+    ) {
         this.placeholderSettings = pluginConfig.placeholders;
         this.fightManager = fightManager;
+        this.pvpStatusService = pvpStatusService;
         this.server = server;
         this.plugin = plugin;
     }
@@ -39,6 +48,8 @@ public class FightTagPlaceholder extends PlaceholderExpansion {
             case "opponent_health" -> this.handleOpponentHealth(player);
             case "isInCombat" -> this.handleIsInCombat(player);
             case "isInCombat_formatted" -> this.handleIsInCombatFormatted(player);
+            case "pvp_status" -> this.handlePvpStatus(player);
+            case "pvp_allowed" -> this.handlePvpAllowed(player);
             default -> null;
         };
     }
@@ -75,6 +86,25 @@ public class FightTagPlaceholder extends PlaceholderExpansion {
         return this.isPlayerInCombat(player)
             ? this.placeholderSettings.isInCombatFormattedTrue
             : this.placeholderSettings.isInCombatFormattedFalse;
+    }
+
+    private String handlePvpStatus(OfflinePlayer player) {
+        Player onlinePlayer = player.getPlayer();
+
+        if (onlinePlayer == null) {
+            return "";
+        }
+
+        return switch (this.pvpStatusService.getStatus(onlinePlayer)) {
+            case ALLOWED -> this.placeholderSettings.pvpStatusAllowed;
+            case DISABLED -> this.placeholderSettings.pvpStatusDisabled;
+            case IN_COMBAT -> this.placeholderSettings.pvpStatusInCombat;
+        };
+    }
+
+    private String handlePvpAllowed(OfflinePlayer player) {
+        Player onlinePlayer = player.getPlayer();
+        return onlinePlayer == null ? "" : String.valueOf(this.pvpStatusService.isPvpAllowed(onlinePlayer));
     }
 
     private boolean isPlayerInCombat(OfflinePlayer player) {

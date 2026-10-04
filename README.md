@@ -119,10 +119,18 @@ placeholders:
 | `%eternalcombat_opponent_health%`   | Returns the opponent’s health in `00.00` format.              |
 | `%eternalcombat_remaining_seconds%` | Returns seconds remaining until the player exits combat.      |
 | `%eternalcombat_remaining_millis%`  | Returns milliseconds remaining until the player exits combat. |
+| `%eternalcombat_pvp_status%`        | `PvP Allowed`, `PvP Disabled` or `In Combat` (texts under `placeholders` in `config.yml`). |
+| `%eternalcombat_pvp_allowed%`       | `true` unless a protected region or claim blocks fights at the player's location. |
 
-If a player isn’t in combat, placeholders return an empty string.
+If a player isn’t in combat, the combat placeholders above return an empty string.
 If combat wasn’t triggered by another player,
 opponent-related placeholders will also return empty.
+
+`pvp_status` and `pvp_allowed` work for any online player (empty for offline players). "Disabled" means the player stands
+in a region the plugin protects: a WorldGuard region with `pvp: deny` (see `preventPvpInRegions`), a region listed in
+`blockedRegions`, or a HuskClaims claim (`protectHuskClaims`). `In Combat` takes priority over the other two in
+`pvp_status`; `pvp_allowed` ignores combat. The region check runs on the main thread and is refreshed every second, so
+asynchronous callers get the last known value.
 
 ### Developer API
 

@@ -4,10 +4,13 @@ import com.eternalcode.combat.bridge.placeholder.FightTagPlaceholder;
 import com.eternalcode.combat.config.implementation.PluginConfig;
 import com.eternalcode.combat.fight.FightManager;
 import com.eternalcode.combat.region.CompositeRegionProvider;
+import com.eternalcode.combat.region.PvpStatusService;
 import com.eternalcode.combat.region.bukkit.DefaultRegionProvider;
 import com.eternalcode.combat.region.RegionProvider;
 import com.eternalcode.combat.region.huskclaims.HuskClaimsRegionProvider;
 import com.eternalcode.combat.region.worldguard.WorldGuardRegionProvider;
+import com.eternalcode.commons.bukkit.scheduler.MinecraftScheduler;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -40,7 +43,7 @@ public class BridgeService {
         this.fightManager = fightManager;
     }
 
-    public void init(Server server) {
+    public void init(Server server, MinecraftScheduler scheduler) {
         List<RegionProvider> providers = new ArrayList<>();
 
 
@@ -72,7 +75,11 @@ public class BridgeService {
 
         initialize(
             "PlaceholderAPI",
-            () -> new FightTagPlaceholder(this.config, this.fightManager, server, this.plugin).register(),
+            () -> {
+                PvpStatusService pvpStatusService = new PvpStatusService(server, this.regionProvider, this.fightManager);
+                scheduler.timer(pvpStatusService::refresh, Duration.ofSeconds(1), Duration.ofSeconds(1));
+                new FightTagPlaceholder(this.config, this.fightManager, pvpStatusService, server, this.plugin).register();
+            },
             () -> this.logger.warning("PlaceholderAPI not found; skipping placeholders.")
         );
     }
